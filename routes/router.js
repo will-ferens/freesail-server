@@ -42,7 +42,10 @@ router.get('/beer', (req, res) => {
             res.status(500).json({message: err})
         })
 })
+
 router.post('/beer', upload.single('labelImage'), async (req, res, next) => {
+    console.log(`req body: ${req.file}`)
+
     const { 
         title, 
         style, 
@@ -57,7 +60,7 @@ router.post('/beer', upload.single('labelImage'), async (req, res, next) => {
         style,
         description,
         abv,
-        birthday,
+        birthday, 
         labelImage: req.file.path
     })
 
