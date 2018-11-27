@@ -3,9 +3,10 @@ const app = express()
 const mongoose = require('mongoose')
 const cors = require('cors')
 const bodyParser = require('body-parser')
+require('dotenv').config()
 
 mongoose.Promise = global.Promise
-mongoose.connect('mongodb://will.ferens:w76h6Z{3@ds053449.mlab.com:53449/freesail', { useNewUrlParser: true })
+mongoose.connect(`mongodb://${process.env.DBACCESS}@ds053449.mlab.com:53449/freesail`, { useNewUrlParser: true })
 
 const db = mongoose.connection
 

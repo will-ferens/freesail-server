@@ -1,34 +1,13 @@
 const express = require('express')
 const router = express.Router()
 const multer = require('multer')
+const upload = require('../upload/upload')
 
 const Beer = require('../models/beer')
 const mongoose = require('mongoose')
 
-const fileFilter = (req, file, cb) => {
-    if(file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') {
-        cb(null, true)
-    } else {
-        cb(null, false)
-    }
-}
 
-const storage = multer.diskStorage({
-    destination: function(req, files, cb) {
-        cb(null, './uploads/')
-    },
-    filename: function(req, file, cb) {
-        cb(null, new Date().toISOString() + file.originalname)
-    },
-    fileFilter: fileFilter
-})
-
-
-
-const upload = multer({storage: storage, limits: {
-    fileSize: 1024 * 1024 * 5
-}})
-
+const singleUpload = upload.single('labelImage')
 
 router.get('/beer', (req, res) => {
     Beer
@@ -43,34 +22,39 @@ router.get('/beer', (req, res) => {
         })
 })
 
-router.post('/beer', upload.single('labelImage'), async (req, res, next) => {
-    console.log(`req body: ${req.file}`)
+router.post('/beer', async (req, res, next) => {
+    singleUpload(req, res, async function(err, some) {
+        if (err) {
+            return res.status(422).send({errors: [{title: 'Image Upload Error', detail: err.message}] })
+        }
 
-    const { 
-        title, 
-        style, 
-        description, 
-        abv, 
-        birthday, 
-    } = req.body
-
-    const beer = new Beer({
-        _id: mongoose.Types.ObjectId(),
-        title, 
-        style,
-        description,
-        abv,
-        birthday, 
-        labelImage: req.file.path
+        // return res.json({'imageUrl': req.file.location})
+        const { 
+            title, 
+            style, 
+            description, 
+            abv, 
+            birthday, 
+        } = req.body
+    
+        const beer = new Beer({
+            _id: mongoose.Types.ObjectId(),
+            title, 
+            style,
+            description,
+            abv,
+            birthday, 
+            labelImage: req.file.location
+        })
+    
+        try {
+            await beer.save()
+            res.send(beer)
+        } catch (err) {
+            console.log(err)
+            res.send(500, err)
+        }
     })
-
-    try {
-        await beer.save()
-        res.send(beer)
-    } catch (err) {
-        console.log(err)
-        res.send(500, err)
-    }
 
     
 })
